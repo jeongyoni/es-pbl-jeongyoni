@@ -1,0 +1,7 @@
+# T08 — 첫 REST 요청
+
+GET /
+
+# T09 — cluster health
+
+GET /_cluster/health
