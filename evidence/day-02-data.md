@@ -88,6 +88,10 @@ green  open   my-index                                        HhfulZQHRfG2WeM08K
 | Update | POST /beauty-products/_update/P-00001 (price→12000) | result: updated, version: 2 |
 | Delete | DELETE /beauty-products/_doc/P-00001 | result: deleted, version: 3 |
 
-## T15 — 데이터 적재 및 검증
+## T15 — 데이터 생성 및 적재
 
-(Day 2 진행 중 기록 예정)
+- 생성 방식: Python 스크립트 (generate-beauty.py), seed=20260901
+- 생성 건수: 1,000건
+- 파일: data/pbl-data-template/generated/beauty-products-1000.ndjson
+- Bulk 적재 결과: errors: false, items: 1000
+- count 검증: GET /beauty-products/_count → count: 1000 ✅
