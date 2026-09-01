@@ -46,13 +46,13 @@ Day 1에는 field의 검색 역할과 ES type 후보를 초안으로 적습니�
 | tags | ["촉촉함", "발색"] | 전문 검색 | text | 사용자 입력 키워드와 태그 token 매칭 |
 | release_date | "2026-03-01" | 범위 / 정렬 | date | 신상품 정렬, 출시일 범위 필터 |
 
-## 4. 검색 질문과 field 연결
+## 4. 검색 질문 분해 (T10-P)
 
-| 검색 질문 | 사용할 field | 확인할 역할 |
-|---|---|---|
-| 촉촉한 봄웜 립틴트 | tags(전문 검색), personal_color(정확 조건), category(정확 조건) | "촉촉함" token 포함 + personal_color=봄웜 + category=립틴트 |
-| 지속력 좋은 코랄 블러셔 | tags(전문 검색), category(정확 조건) | "지속력" token 포함 + category=블러셔 |
-| 2만원 이하 평점 좋은 아이섀도우 | price(범위), category(정확 조건), rating(정렬) | price≤20000 + category=아이섀도우, rating 내림차순 |
+| 질문 | 검색어 | 조건(filter) | 정렬 | 표시할 field | 필요 field |
+|---|---|---|---|---|---|
+| 촉촉한 봄웜 립틴트 | 촉촉한 | personal_color=봄웜, category=립틴트 | rating 내림차순 | product_name, brand, price, rating | tags, personal_color, category, rating |
+| 지속력 좋은 코랄 블러셔 | 지속력 좋은 | category=블러셔 | rating 내림차순 | product_name, brand, price, rating | tags, category, rating |
+| 2만원 이하 평점 좋은 아이섀도우 | 아이섀도우 | category=아이섀도우, price≤20000 | rating 내림차순 | product_name, brand, price, rating | category, price, rating |
 
 ## 5. 제외할 데이터
 

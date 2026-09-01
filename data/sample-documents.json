@@ -1,0 +1,44 @@
+[
+  {
+    "_comment": "포함 문서 — 촉촉한 봄웜 립틴트 질문에 해당. tags에 촉촉함 포함, personal_color=봄웜, category=립틴트",
+    "product_id": "P-0001",
+    "product_name": "롬앤 쥬시래스팅 틴트",
+    "brand": "롬앤",
+    "category": "립틴트",
+    "personal_color": "봄웜",
+    "skin_type": "건성",
+    "price": 13000,
+    "rating": 4.7,
+    "review_count": 3251,
+    "tags": ["촉촉함", "발색", "지속력"],
+    "release_date": "2026-03-01"
+  },
+  {
+    "_comment": "제외 문서 — personal_color=여쿨 이라서 봄웜 필터에서 제외됨",
+    "product_id": "P-0002",
+    "product_name": "클리오 버터 틴트",
+    "brand": "클리오",
+    "category": "립틴트",
+    "personal_color": "여쿨",
+    "skin_type": "지성",
+    "price": 11000,
+    "rating": 4.3,
+    "review_count": 1820,
+    "tags": ["촉촉함", "은은한발색"],
+    "release_date": "2025-11-01"
+  },
+  {
+    "_comment": "경계 문서 — 3번 질문 기준 price=20000 정확히 경계값. 아이섀도우, price=20000 이하 포함",
+    "product_id": "P-0003",
+    "product_name": "에뛰드 룩앳마이아이즈",
+    "brand": "에뛰드",
+    "category": "아이섀도우",
+    "personal_color": "봄웜",
+    "skin_type": "복합성",
+    "price": 20000,
+    "rating": 4.5,
+    "review_count": 2104,
+    "tags": ["발색", "지속력"],
+    "release_date": "2025-08-15"
+  }
+]
