@@ -66,6 +66,19 @@ green  open   my-index                                        HhfulZQHRfG2WeM08K
 - 전체 11개 field 확인 ✅
 - product_name: text + keyword 멀티필드 확인 ✅
 
+## T13 — _analyze 토큰 확인
+
+### POST /_analyze (standard 직접 지정)
+- 입력: "촉촉한 봄웜 립틴트"
+- 예상 token: 촉촉한, 봄웜, 립틴트
+- 실제 token: 촉촉한(0), 봄웜(1), 립틴트(2)
+- 차이: 없음
+
+### POST /beauty-products/_analyze (product_name field)
+- 입력: "촉촉한 봄웜 립틴트"
+- 실제 token: 촉촉한(0), 봄웜(1), 립틴트(2)
+- 두 결과 동일 → korean_search(standard)가 공백 기준으로 token 분리함
+
 ## T15 — 데이터 적재 및 검증
 
 (Day 2 진행 중 기록 예정)

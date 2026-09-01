@@ -8,3 +8,16 @@ GET /_cluster/health
 
 ### V1-T09-P 생성 후 실행 — mapping 확인용
 GET /beauty-products/_mapping
+
+### V1-T12-P — index 생성 확인
+GET /beauty-products
+GET /beauty-products/_mapping
+GET /_cat/shards/beauty-products?v
+
+### V1-T13-P — standard analyzer 직접 지정
+POST /_analyze
+{"analyzer":"standard","text":"촉촉한 봄웜 립틴트"}
+
+### V1-T13-P — beauty-products product_name field 분석
+POST /beauty-products/_analyze
+{"field":"product_name","text":"촉촉한 봄웜 립틴트"}
