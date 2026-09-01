@@ -27,6 +27,14 @@ green  open   my-index                                        HhfulZQHRfG2WeM08K
 
 - products index 존재 여부: 없음 (아직 생성 전 — 정상)
 
+### GET /_cat/shards/beauty-products?v
+```
+index           shard prirep state   docs   store dataset ip         node
+beauty-products 0     p      STARTED 1000 365.6kb 365.6kb 172.18.0.5 es03
+beauty-products 0     r      STARTED 1000 354.6kb 354.6kb 172.18.0.4 es02
+```
+- primary: es03 / replica: es02 / 둘 다 STARTED ✅
+
 ## T12 — index 생성 및 mapping 확인
 
 ### PUT /beauty-products 결과
@@ -74,10 +82,16 @@ green  open   my-index                                        HhfulZQHRfG2WeM08K
 - 실제 token: 촉촉한(0), 봄웜(1), 립틴트(2)
 - 차이: 없음
 
-### POST /beauty-products/_analyze (product_name field)
-- 입력: "촉촉한 봄웜 립틴트"
-- 실제 token: 촉촉한(0), 봄웜(1), 립틴트(2)
-- 두 결과 동일 → korean_search(standard)가 공백 기준으로 token 분리함
+### 검색어 3개 × 2방식 결과
+
+| 검색어 | standard 결과 | field 결과 | 차이 |
+|---|---|---|---|
+| 촉촉한 봄웜 립틴트 | 촉촉한, 봄웜, 립틴트 | 촉촉한, 봄웜, 립틴트 | 없음 |
+| 지속력 좋은 코랄 블러셔 | 지속력, 좋은, 코랄, 블러셔 | 지속력, 좋은, 코랄, 블러셔 | 없음 |
+| 2만원 이하 평점 좋은 아이섀도우 | 2만원(ALPHANUM), 이하, 평점, 좋은, 아이섀도우 | 동일 | 없음 |
+
+- "2만원"은 숫자+한글 혼합이라 ALPHANUM 타입으로 인식됨 (검색 시 주의)
+- 전체적으로 korean_search(standard)는 공백 기준 token 분리, 두 방식 결과 동일
 
 ## T14 — CRUD
 
@@ -87,6 +101,7 @@ green  open   my-index                                        HhfulZQHRfG2WeM08K
 | Read | GET /beauty-products/_doc/P-00001 | found: true, price: 13000 확인 |
 | Update | POST /beauty-products/_update/P-00001 (price→12000) | result: updated, version: 2 |
 | Delete | DELETE /beauty-products/_doc/P-00001 | result: deleted, version: 3 |
+| 삭제 확인 | GET /beauty-products/_doc/P-00001 | found: false ✅ |
 
 ## T15 — 데이터 생성 및 적재
 
