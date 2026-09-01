@@ -1,0 +1,30 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1,
+    "analysis": {
+      "analyzer": {
+        "korean_search": {
+          "type": "standard",
+          "stopwords": "_none_"
+        }
+      }
+    }
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "product_id":    { "type": "keyword" },
+      "product_name":  { "type": "text", "analyzer": "korean_search", "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } },
+      "brand":         { "type": "keyword" },
+      "category":      { "type": "keyword" },
+      "personal_color":{ "type": "keyword" },
+      "skin_type":     { "type": "keyword" },
+      "price":         { "type": "integer" },
+      "rating":        { "type": "float" },
+      "review_count":  { "type": "integer" },
+      "tags":          { "type": "text", "analyzer": "korean_search" },
+      "release_date":  { "type": "date" }
+    }
+  }
+}
