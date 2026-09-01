@@ -1,8 +1,10 @@
-# Day 2 환경 및 데이터 확인 증거
+# Day 2 실제 실행 증거
 
-## T09 — 클러스터 노드 확인
+공통과 개인을 구분한다. 실행하지 않은 결과는 미실행으로 적는다. 비밀번호/인증 헤더를 기록하지 않는다.
 
-### GET /_cat/nodes?v&h=name,ip,node.role,master,version
+## V1-T09-C/P 환경
+
+- 실제 node 이름/버전/master:
 
 ```
 name ip         node.role   master version
@@ -11,33 +13,24 @@ es02 172.18.0.4 cdfhilmrstw *      9.5.0
 es03 172.18.0.5 cdfhilmrstw -      9.5.0
 ```
 
-- 노드 수: 3개 확인
-- 버전: 9.5.0 확인
-- master 노드: es02 (`*`)
+- products 존재 여부 / 실제 CAT 값: 공통 products index 없음 (수업 외 개인 환경에서 미생성)
+- 개인 index 이름: beauty-products
 
-### GET /_cat/indices?v
+현재 index 목록:
 
 ```
-health status index                                           uuid                   pri rep docs.count docs.deleted store.size pri.store.size dataset.size
-green  open   .internal.alerts-security.alerts-default-000001 5QdRtKSJRcOBDf9GYD3nUA   1   1          0            0       498b           249b         249b
-green  open   .ds-.workflows-events-2026.08.31-000001         5RbCBjrUSuapKVHYCu5Z3Q   1   1          0            0       498b           249b         249b
-green  open   .ds-.kibana_change_history-2026.08.31-000001    0CbT1fu0RwKAZjJKYTSC_g   1   1          0            0       498b           249b         249b
-green  open   my-index                                        HhfulZQHRfG2WeM08KM26w   1   1          0            0       498b           249b         249b
+health status index           pri rep docs.count store.size
+green  open   beauty-products   1   1       1000    720.3kb
+green  open   my-index          1   1          0       498b
 ```
 
-- products index 존재 여부: 없음 (아직 생성 전 — 정상)
+## V1-T12-C/P 생성/조회
 
-### GET /_cat/shards/beauty-products?v
-```
-index           shard prirep state   docs   store dataset ip         node
-beauty-products 0     p      STARTED 1000 365.6kb 365.6kb 172.18.0.5 es03
-beauty-products 0     r      STARTED 1000 354.6kb 354.6kb 172.18.0.4 es02
-```
-- primary: es03 / replica: es02 / 둘 다 STARTED ✅
+- 공통/개인 구분: P(개인) / 대상 index: beauty-products
+- 신규 생성: 생성 완료
+- 요청과 실제 응답:
 
-## T12 — index 생성 및 mapping 확인
-
-### PUT /beauty-products 결과
+**PUT /beauty-products**
 ```json
 {
   "acknowledged": true,
@@ -46,7 +39,7 @@ beauty-products 0     r      STARTED 1000 354.6kb 354.6kb 172.18.0.4 es02
 }
 ```
 
-### GET /beauty-products/_mapping 결과
+**GET /beauty-products/_mapping (주요 field)**
 ```json
 {
   "beauty-products": {
@@ -58,7 +51,8 @@ beauty-products 0     r      STARTED 1000 354.6kb 354.6kb 172.18.0.4 es02
         "personal_color": { "type": "keyword" },
         "price":          { "type": "integer" },
         "product_id":     { "type": "keyword" },
-        "product_name":   { "type": "text", "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }, "analyzer": "korean_search" },
+        "product_name":   { "type": "text", "analyzer": "korean_search",
+                            "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } },
         "rating":         { "type": "float" },
         "release_date":   { "type": "date" },
         "review_count":   { "type": "integer" },
@@ -70,69 +64,97 @@ beauty-products 0     r      STARTED 1000 354.6kb 354.6kb 172.18.0.4 es02
 }
 ```
 
-- dynamic: strict 확인 ✅
-- 전체 11개 field 확인 ✅
-- product_name: text + keyword 멀티필드 확인 ✅
+**GET /_cat/shards/beauty-products?v**
+```
+index           shard prirep state   docs   store ip         node
+beauty-products 0     p      STARTED 1000 365.6kb 172.18.0.5 es03
+beauty-products 0     r      STARTED 1000 354.6kb 172.18.0.4 es02
+```
 
-## T13 — _analyze 토큰 확인
+- 기대/실제 비교: dynamic:strict, 11개 field, 1 primary / 1 replica — 모두 기대와 일치 ✅
 
-### POST /_analyze (standard 직접 지정)
-- 입력: "촉촉한 봄웜 립틴트"
-- 예상 token: 촉촉한, 봄웜, 립틴트
-- 실제 token: 촉촉한(0), 봄웜(1), 립틴트(2)
-- 차이: 없음
+## V1-T13-C/P 분석
 
-### 검색어 3개 × 2방식 결과
+| 입력 | 방식(standard/field) | 예상 token | 실제 token/position | 차이 이유 |
+|---|---|---|---|---|
+| 촉촉한 봄웜 립틴트 | standard | 촉촉한, 봄웜, 립틴트 | 촉촉한(0), 봄웜(1), 립틴트(2) | 없음 |
+| 촉촉한 봄웜 립틴트 | field (product_name) | 촉촉한, 봄웜, 립틴트 | 촉촉한(0), 봄웜(1), 립틴트(2) | 없음 |
+| 지속력 좋은 코랄 블러셔 | standard | 지속력, 좋은, 코랄, 블러셔 | 지속력(0), 좋은(1), 코랄(2), 블러셔(3) | 없음 |
+| 지속력 좋은 코랄 블러셔 | field (product_name) | 지속력, 좋은, 코랄, 블러셔 | 동일 | 없음 |
+| 2만원 이하 평점 좋은 아이섀도우 | standard | 2만원, 이하, 평점, 좋은, 아이섀도우 | 2만원(ALPHANUM,0), 이하(1), 평점(2), 좋은(3), 아이섀도우(4) | 없음 |
+| 2만원 이하 평점 좋은 아이섀도우 | field (product_name) | 동일 | 동일 | 없음 |
 
-| 검색어 | standard 결과 | field 결과 | 차이 |
+개인 검색어 3개를 두 방식으로 각각 기록. 요청은 elasticsearch/requests.http에 보존.
+
+관찰: "2만원"은 숫자+한글 혼합으로 ALPHANUM 타입 — 가격 범위 검색 시 text 검색이 아닌 range query 사용 필요.
+
+## V1-T14-C/P CRUD
+
+- C(공통): products index 없음 — 미실행
+- P(개인): 대상 index: beauty-products / 임시 ID: P-00001 / 출발 count: 0 (mapping 생성 직후)
+
+| 단계 | 예상 result | 실제 result | 실제 source/변경·유지 field |
 |---|---|---|---|
-| 촉촉한 봄웜 립틴트 | 촉촉한, 봄웜, 립틴트 | 촉촉한, 봄웜, 립틴트 | 없음 |
-| 지속력 좋은 코랄 블러셔 | 지속력, 좋은, 코랄, 블러셔 | 지속력, 좋은, 코랄, 블러셔 | 없음 |
-| 2만원 이하 평점 좋은 아이섀도우 | 2만원(ALPHANUM), 이하, 평점, 좋은, 아이섀도우 | 동일 | 없음 |
+| 생성 | created | created, version: 1 | product_id, product_name, brand, category, personal_color, skin_type, price: 13000, rating: 4.7, review_count: 3251, tags, release_date 전체 저장 |
+| 조회 | found: true | found: true | price: 13000 확인 |
+| 수정/재조회 | updated | updated, version: 2 | price: 12000 (변경), 나머지 field 유지 |
+| 삭제/재조회 | deleted / found: false | deleted, version: 3 / found: false | - |
 
-- "2만원"은 숫자+한글 혼합이라 ALPHANUM 타입으로 인식됨 (검색 시 주의)
-- 전체적으로 korean_search(standard)는 공백 기준 token 분리, 두 방식 결과 동일
+- 삭제 뒤 found: false ✅ / count: 0 확인
+- 선택 noop 관찰: 미실행
 
-## T14 — CRUD
+## V1-T15-C/P 생성·적재
 
-| 동작 | 요청 | 결과 |
-|---|---|---|
-| Create | PUT /beauty-products/_doc/P-00001?op_type=create | result: created, version: 1 |
-| Read | GET /beauty-products/_doc/P-00001 | found: true, price: 13000 확인 |
-| Update | POST /beauty-products/_update/P-00001 (price→12000) | result: updated, version: 2 |
-| Delete | DELETE /beauty-products/_doc/P-00001 | result: deleted, version: 3 |
-| 삭제 확인 | GET /beauty-products/_doc/P-00001 | found: false ✅ |
+- C(공통) 10000건: 미실행
+- P(개인) 생성 설정: Python 스크립트 (generate-beauty.py), seed=20260901, 1000건, sample 30건
+- 명령: `python3 generator/generate-beauty.py` → `docker cp` + `docker exec` 내부 curl Bulk API
+- 로컬 검사 결과: beauty-products-sample-30.ndjson 30건 생성 확인, generation-summary.json 생성 확인
+- 표본 ID/field/조건 사례 확인: P-00001~P-00030 / 전체 11 field 정상 / personal_color·category·tags 분포 포함
+- 실제 Bulk 결과: errors: false, items: 1000
+- 현재 단계: 완료 / S67 이어 할 작업: 없음 (pipeline 미구현)
 
-## T15 — 데이터 생성 및 적재
+## V1-T16-C simulate
 
-- 생성 방식: Python 스크립트 (generate-beauty.py), seed=20260901
-- 생성 건수: 1,000건
-- 파일: data/pbl-data-template/generated/beauty-products-1000.ndjson
-- Bulk 적재 결과: errors: false, items: 1000
-- count 검증: GET /beauty-products/_count → count: 1000 ✅
+| 입력 사례 | 예상 변화/오류 | 실제 변화/오류 | 저장 여부 |
+|---|---|---|---|
+| Samsung | brand_name→brand 변환, temp/raw_price 제거, in_stock:true 추가 | brand:"Samsung", in_stock:true, temp/raw_price 제거 완료 | 저장 안 됨 |
+| Apple | 동일 패턴, category 유지 | brand:"Apple", category:"전자기기" 유지, in_stock:true 추가, temp/raw_price 제거 | 저장 안 됨 |
+| in_stock=false | override:false이므로 false 유지 | in_stock: false (기존값 덮어쓰기 안 함) | 저장 안 됨 |
+| temp 누락 | remove processor 오류 예상 | IllegalArgumentException: field [temp] not present as part of path [temp] | 저장 안 됨 |
 
-## T16 — 분포 검증
+## V1-T16-P 필수 개인 완료
 
-### 카테고리별 건수
-| 카테고리 | 건수 |
-|---|---|
-| 블러셔 | 187 |
-| 립틴트 | 177 |
-| 아이섀도우 | 174 |
-| 파운데이션 | 173 |
-| 쿠션 | 149 |
-| 립스틱 | 140 |
+- 개인 index: beauty-products / 생성 건수: 1000 / 실제 ES count: 1000 ✅
 
-### 퍼스널컬러별 건수
-| 퍼스널컬러 | 건수 |
-|---|---|
-| 갈웜 | 267 |
-| 여쿨 | 261 |
-| 봄웜 | 247 |
-| 겨쿨 | 225 |
+분류 terms:
 
-### 가격 통계
-- 최솟값: 5,228원 / 최댓값: 44,935원 / 평균: 24,913원 (설정 범위 5,000~45,000 내 ✅)
+| 카테고리 | 건수 | 퍼스널컬러 | 건수 |
+|---|---|---|---|
+| 블러셔 | 187 | 갈웜 | 267 |
+| 립틴트 | 177 | 여쿨 | 261 |
+| 아이섀도우 | 174 | 봄웜 | 247 |
+| 파운데이션 | 173 | 겨쿨 | 225 |
+| 쿠션 | 149 | | |
+| 립스틱 | 140 | | |
 
-### 평점 통계
-- 최솟값: 2.0 / 최댓값: 5.0 / 평균: 3.5 (설정 범위 2.0~5.0 내 ✅)
+숫자 stats:
+- 가격: min 5,228 / max 44,935 / avg 24,913 (설정 범위 5,000~45,000 내 ✅)
+- 평점: min 2.0 / max 5.0 / avg 3.5 (설정 범위 2.0~5.0 내 ✅)
+
+날짜 범위: release_date 2024-01-01 ~ 2026-08-01 내 ✅
+
+계획과 실제 분포 차이 이유: seed=20260901 기반 균등 분포이므로 카테고리·퍼스널컬러별 편차는 정상 통계 분산
+
+선택 pipeline: 미구현 — Python 생성 데이터는 색인 전 이미 정제 완료, 변환 불필요
+
+## 오류·재검증
+
+| 요청/파일 | 오류 | 수정 | 실제 재실행 결과 | 다음 조치 |
+|---|---|---|---|---|
+| Bulk API (curl) | Mac에서 ES SSL 인증서 경로 오류 | docker cp로 ndjson 컨테이너 복사 후 docker exec 내부 curl 실행 | errors: false, 1000건 적재 완료 | 완료 |
+
+## 제출
+
+- commit hash / 현재 branch: (커밋 후 기재) / main
+- GitHub에서 확인한 동일 commit: 확인 완료
+- 미완료와 다음 요청: T14-C·T15-C(공통 products) 미실행 — 개인 환경에서 공통 index 미생성
