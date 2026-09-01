@@ -27,9 +27,44 @@ green  open   my-index                                        HhfulZQHRfG2WeM08K
 
 - products index 존재 여부: 없음 (아직 생성 전 — 정상)
 
-## T11 — index/mapping 생성
+## T12 — index 생성 및 mapping 확인
 
-(Day 2 진행 중 기록 예정)
+### PUT /beauty-products 결과
+```json
+{
+  "acknowledged": true,
+  "shards_acknowledged": true,
+  "index": "beauty-products"
+}
+```
+
+### GET /beauty-products/_mapping 결과
+```json
+{
+  "beauty-products": {
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "brand":          { "type": "keyword" },
+        "category":       { "type": "keyword" },
+        "personal_color": { "type": "keyword" },
+        "price":          { "type": "integer" },
+        "product_id":     { "type": "keyword" },
+        "product_name":   { "type": "text", "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }, "analyzer": "korean_search" },
+        "rating":         { "type": "float" },
+        "release_date":   { "type": "date" },
+        "review_count":   { "type": "integer" },
+        "skin_type":      { "type": "keyword" },
+        "tags":           { "type": "text", "analyzer": "korean_search" }
+      }
+    }
+  }
+}
+```
+
+- dynamic: strict 확인 ✅
+- 전체 11개 field 확인 ✅
+- product_name: text + keyword 멀티필드 확인 ✅
 
 ## T15 — 데이터 적재 및 검증
 
