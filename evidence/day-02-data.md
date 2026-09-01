@@ -79,6 +79,15 @@ green  open   my-index                                        HhfulZQHRfG2WeM08K
 - 실제 token: 촉촉한(0), 봄웜(1), 립틴트(2)
 - 두 결과 동일 → korean_search(standard)가 공백 기준으로 token 분리함
 
+## T14 — CRUD
+
+| 동작 | 요청 | 결과 |
+|---|---|---|
+| Create | PUT /beauty-products/_doc/P-00001?op_type=create | result: created, version: 1 |
+| Read | GET /beauty-products/_doc/P-00001 | found: true, price: 13000 확인 |
+| Update | POST /beauty-products/_update/P-00001 (price→12000) | result: updated, version: 2 |
+| Delete | DELETE /beauty-products/_doc/P-00001 | result: deleted, version: 3 |
+
 ## T15 — 데이터 적재 및 검증
 
 (Day 2 진행 중 기록 예정)

@@ -21,3 +21,14 @@ POST /_analyze
 ### V1-T13-P — beauty-products product_name field 분석
 POST /beauty-products/_analyze
 {"field":"product_name","text":"촉촉한 봄웜 립틴트"}
+
+### V1-T14-P — CRUD
+PUT /beauty-products/_doc/P-00001?op_type=create
+{"product_id":"P-00001","product_name":"롬앤 립틴트 1","brand":"롬앤","category":"립틴트","personal_color":"봄웜","skin_type":"건성","price":13000,"rating":4.7,"review_count":3251,"tags":["촉촉함","발색"],"release_date":"2026-03-01"}
+
+GET /beauty-products/_doc/P-00001
+
+POST /beauty-products/_update/P-00001
+{"doc":{"price":12000}}
+
+DELETE /beauty-products/_doc/P-00001
