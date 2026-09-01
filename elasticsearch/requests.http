@@ -5,3 +5,6 @@ GET /
 # T09 — cluster health
 
 GET /_cluster/health
+
+### V1-T09-P 생성 후 실행 — mapping 확인용
+GET /beauty-products/_mapping
