@@ -14,12 +14,12 @@ GET /products/_search
 
 ### 결과 입력
 
-- HTTP 성공 여부:
-- `hits.total.value`:
-- `hits.hits`에 반환된 문서 수:
-- 첫 번째 문서의 `_id`:
-- 첫 번째 문서의 `_source` field 3개:
-- `hits.total.value`와 반환 문서 수가 다를 수 있는 이유:
+- HTTP 성공 여부: 200 OK
+- `hits.total.value`: 10000
+- `hits.hits`에 반환된 문서 수: 5
+- 첫 번째 문서의 `_id`: P-00003
+- 첫 번째 문서의 `_source` field 3개: product_id(P-00003), name(Morrow 실속형 오버핏 후드), description(출근에 잘 어울리는 패션 상품입니다.)
+- `hits.total.value`와 반환 문서 수가 다를 수 있는 이유: size 파라미터가 한 번에 반환할 문서 수를 제한하기 때문. total은 조건에 맞는 전체 문서 수, 반환 수는 size 값까지만 가져옴
 
 ## (공통) 문제 2 — 반환 개수와 field 직접 구현
 
@@ -28,14 +28,19 @@ GET /products/_search
 ### API 전체 입력
 
 ```http
-
+GET /products/_search
+{
+  "size": 3,
+  "_source": ["product_id", "name", "price", "in_stock"],
+  "query": { "match_all": {} }
+}
 ```
 
 ### 결과 입력
 
-- 반환 문서 수:
-- `_source`에 요구하지 않은 field가 포함됐는가:
-- 검증한 문서 ID:
+- 반환 문서 수: 3
+- `_source`에 요구하지 않은 field가 포함됐는가: 아니오, product_id·name·price·in_stock 4개만 반환
+- 검증한 문서 ID: P-00003, P-00004, P-00008
 
 ## (공통) 문제 3 — 정렬이 포함된 전체 조회 구현
 
@@ -44,14 +49,20 @@ GET /products/_search
 ### API 전체 입력
 
 ```http
-
+GET /products/_search
+{
+  "size": 10,
+  "_source": ["product_id", "name", "price"],
+  "query": { "match_all": {} },
+  "sort": [{ "price": "asc" }]
+}
 ```
 
 ### 결과 입력
 
-- 첫 3개 문서의 ID와 price:
-- 오름차순 여부:
-- 두 문서의 price가 같을 때 순서가 고정된다고 말할 수 있는가? 근거:
+- 첫 3개 문서의 ID와 price: P-00431(5900), P-06599(5900), P-06479(5900)
+- 오름차순 여부: 예, price 낮은 순 정렬 확인
+- 두 문서의 price가 같을 때 순서가 고정된다고 말할 수 있는가? 근거: 아니오. 동점일 때 추가 정렬 기준이 없으면 shard 내 문서 순서에 따라 결과가 달라질 수 있어 재실행 시 순서가 바뀔 수 있음
 
 ## (개인) 문제 4 — 자기 index의 첫 Search API
 
@@ -66,14 +77,18 @@ GET /products/_search
 ### API와 결과 입력
 
 ```http
-
+GET /beauty-products/_search
+{
+  "size": 5,
+  "query": { "match_all": {} }
+}
 ```
 
-- 자기 index:
-- `_count`:
-- `hits.total.value`:
-- 반환 문서 수:
-- 판정과 근거:
+- 자기 index: beauty-products
+- `_count`: 1000
+- `hits.total.value`: 1000
+- 반환 문서 수: 5
+- 판정과 근거: 통과. _count와 hits.total.value 모두 1000으로 일치. size=5이므로 실제 반환은 5건이며 나머지 995건은 페이지네이션으로 조회 가능
 
 ## (개인) 문제 5 — 결과 카드 field 설계
 
@@ -88,10 +103,15 @@ GET /products/_search
 ### API와 결과 입력
 
 ```http
-
+GET /beauty-products/_search
+{
+  "size": 5,
+  "_source": ["product_id", "product_name", "brand", "price", "rating"],
+  "query": { "match_all": {} }
+}
 ```
 
-- 포함한 field와 이유:
-- 제외한 field와 이유:
-- 실제 반환 문서 ID:
-- 완료 판정:
+- 포함한 field와 이유: product_id(식별자), product_name(제목), brand(브랜드 판단), price(가격 판단), rating(품질 판단)
+- 제외한 field와 이유: skin_type·personal_color·review_count·tags·release_date — 결과 카드에서 클릭 여부 판단에 불필요
+- 실제 반환 문서 ID: P-00004, P-00017, P-00018
+- 완료 판정: 완료
