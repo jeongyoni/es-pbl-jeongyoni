@@ -1,25 +1,27 @@
 {
   "_source": [
     "product_id",
-    "name",
-    "description",
-    "category",
+    "product_name",
     "brand",
+    "category",
+    "personal_color",
+    "skin_type",
     "price",
-    "rating"
+    "rating",
+    "tags"
   ],
   "query": {
     "multi_match": {
       "query": "{{searchText}}",
-      "fields": ["name^3", "description"]
+      "fields": ["product_name^3", "tags"]
     }
   },
   "highlight": {
     "pre_tags": ["<mark>"],
     "post_tags": ["</mark>"],
     "fields": {
-      "name": {},
-      "description": {}
+      "product_name": {},
+      "tags": {}
     }
   },
   "sort": [

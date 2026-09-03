@@ -1,13 +1,13 @@
 {
-  "appTitle": "나의 PBL 검색 서비스",
-  "appDescription": "Elasticsearch Search API로 내 데이터를 검색합니다.",
-  "index": "products",
-  "searchPlaceholder": "상품명이나 설명을 입력하세요",
-  "exampleQueries": ["무선", "이어폰", "블루투스"],
+  "appTitle": "Beauty Finder — 화장품 검색",
+  "appDescription": "퍼스널컬러·피부타입·예산에 맞는 화장품을 찾아보세요.",
+  "index": "beauty-products",
+  "searchPlaceholder": "제품명, 브랜드, 태그를 입력하세요",
+  "exampleQueries": ["립틴트", "촉촉", "봄웜", "선크림"],
   "pageSize": 12,
   "resultFields": {
-    "title": "name",
-    "description": "description",
+    "title": "product_name",
+    "description": "tags",
     "badge": "category",
     "meta": [
       { "label": "브랜드", "field": "brand" },
