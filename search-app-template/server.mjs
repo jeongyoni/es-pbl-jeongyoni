@@ -125,11 +125,14 @@ const server = http.createServer(async (request, response) => {
       const searchText = (requestUrl.searchParams.get("q") || "").trim();
       if (!searchText) return sendJson(response, 400, { message: "검색어를 입력하세요." });
       if (searchText.length > 100) return sendJson(response, 400, { message: "검색어는 100자 이하여야 합니다." });
+      const fromParam = parseInt(requestUrl.searchParams.get("from") || "0", 10);
+      const from = Number.isFinite(fromParam) && fromParam >= 0 ? fromParam : 0;
 
       const config = validateAppConfig(await readJson("app.config.json"));
       const requestTemplate = await readJson("search-request.json");
       const body = applySearchText(requestTemplate, searchText);
       body.size = config.pageSize;
+      body.from = from;
       const result = await requestElasticsearch(config.index, body);
       return sendJson(response, 200, {
         ...result,

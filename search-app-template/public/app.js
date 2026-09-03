@@ -14,10 +14,17 @@ const elements = {
   queryToggle: document.querySelector("#query-toggle"),
   queryPanel: document.querySelector("#query-panel"),
   queryPath: document.querySelector("#query-path"),
-  queryCode: document.querySelector("#query-code")
+  queryCode: document.querySelector("#query-code"),
+  pagination: document.querySelector("#pagination"),
+  prevBtn: document.querySelector("#prev-btn"),
+  nextBtn: document.querySelector("#next-btn"),
+  pageInfo: document.querySelector("#page-info"),
 };
 
 let config;
+let currentQuery = "";
+let currentFrom = 0;
+let currentTotal = 0;
 
 function closeQueryPanel() {
   elements.queryPanel.hidden = true;
@@ -97,29 +104,42 @@ function showMessage(title, detail, type = "initial") {
   elements.list.replaceChildren();
 }
 
-async function search(searchText) {
-  elements.section.setAttribute("aria-busy", "true");
-  elements.summary.textContent = `“${searchText}” 검색 중`;
-  elements.took.textContent = "";
+function renderPagination(total, from, pageSize) {
+  const currentPage = Math.floor(from / pageSize) + 1;
+  const totalPages = Math.ceil(total / pageSize);
+  if (totalPages <= 1) { elements.pagination.hidden = true; return; }
+  elements.pagination.hidden = false;
+  elements.pageInfo.textContent = `${currentPage} / ${totalPages} 페이지`;
+  elements.prevBtn.disabled = currentPage <= 1;
+  elements.nextBtn.disabled = currentPage >= totalPages;
+}
+
+async function search(searchText, from = 0) {
+  elements.section.setAttribute(“aria-busy”, “true”);
+  elements.summary.textContent = `”${searchText}” 검색 중`;
+  elements.took.textContent = “”;
   elements.queryTools.hidden = true;
   closeQueryPanel();
-  showMessage("검색 중", "ES에서 결과를 가져오고 있습니다.");
+  showMessage(“검색 중”, “ES에서 결과를 가져오고 있습니다.”);
   try {
-    const response = await fetch(`/api/search?q=${encodeURIComponent(searchText)}`);
+    const response = await fetch(`/api/search?q=${encodeURIComponent(searchText)}&from=${from}`);
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "검색 요청에 실패했습니다.");
+    if (!response.ok) throw new Error(data.message || “검색 요청에 실패했습니다.”);
     const hits = data.hits?.hits || [];
-    const total = typeof data.hits?.total === "number" ? data.hits.total : (data.hits?.total?.value || 0);
-    elements.summary.textContent = `“${searchText}” 검색 결과 ${new Intl.NumberFormat("ko-KR").format(total)}건`;
+    const total = typeof data.hits?.total === “number” ? data.hits.total : (data.hits?.total?.value || 0);
+    currentQuery = searchText;
+    currentFrom = from;
+    currentTotal = total;
+    elements.summary.textContent = `”${searchText}” 검색 결과 ${new Intl.NumberFormat(“ko-KR”).format(total)}건`;
     elements.took.textContent = `${data.took ?? 0}ms`;
     setExecutedQuery(data.pblRequest);
-    if (!hits.length) showMessage("검색 결과가 없습니다", "검색어와 query field, 실제 저장값을 확인하세요.");
-    else { elements.message.hidden = true; renderHits(hits); }
+    if (!hits.length) { showMessage(“검색 결과가 없습니다”, “검색어와 query field, 실제 저장값을 확인하세요.”); elements.pagination.hidden = true; }
+    else { elements.message.hidden = true; renderHits(hits); renderPagination(total, from, config.pageSize || 12); }
   } catch (error) {
-    elements.summary.textContent = "검색 요청을 확인하세요";
-    showMessage("검색하지 못했습니다", error.message, "error");
+    elements.summary.textContent = “검색 요청을 확인하세요”;
+    showMessage(“검색하지 못했습니다”, error.message, “error”);
   } finally {
-    elements.section.setAttribute("aria-busy", "false");
+    elements.section.setAttribute(“aria-busy”, “false”);
   }
 }
 
@@ -152,7 +172,20 @@ async function initialize() {
 elements.form.addEventListener("submit", (event) => {
   event.preventDefault();
   const searchText = elements.input.value.trim();
-  if (searchText) search(searchText);
+  if (searchText) search(searchText, 0);
+});
+
+elements.prevBtn.addEventListener("click", () => {
+  const pageSize = config.pageSize || 12;
+  const newFrom = Math.max(0, currentFrom - pageSize);
+  search(currentQuery, newFrom);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+elements.nextBtn.addEventListener("click", () => {
+  const pageSize = config.pageSize || 12;
+  const newFrom = currentFrom + pageSize;
+  if (newFrom < currentTotal) { search(currentQuery, newFrom); window.scrollTo({ top: 0, behavior: "smooth" }); }
 });
 
 elements.queryToggle.addEventListener("click", () => {

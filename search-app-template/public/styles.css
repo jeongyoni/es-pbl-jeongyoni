@@ -85,3 +85,24 @@ footer { padding: 24px; color: var(--muted); text-align: center; font-size: .78r
   .query-toggle { width: 100%; }
   .query-panel-header { align-items: flex-start; flex-direction: column; }
 }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem 0 0.5rem;
+}
+.pagination button {
+  padding: 0.4rem 1.2rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.pagination button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+#page-info { font-size: 0.9rem; color: #555; }
