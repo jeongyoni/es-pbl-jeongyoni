@@ -8,32 +8,49 @@
 
 ## 2. 실행 순서
 
-1. Docker 환경 시작: `es-5days-pbl-course/day-01/docker/` 에서 `start.ps1` 실행
+1. Docker 환경 시작: `es-5days-pbl-course/day-01/docker/` 에서 `docker compose up -d` 실행
 2. index와 mapping 생성: `elasticsearch/index-create.json` 기반으로 Dev Tools Console에서 PUT 요청
-3. 데이터 생성·Bulk 적재: `data/pbl-data-template/` 의 생성기로 5,000건 합성 후 Bulk 색인
-4. 검색 요청 실행: `elasticsearch/requests.http` 의 검색 질문 3개 확인
-5. Kibana Dashboard 확인: `evidence/dashboard.png` 캡처 저장
+3. 데이터 Bulk 적재: `data/pbl-data-template/generated/beauty-products-1000.ndjson` 을 Bulk API로 색인
+4. 검색 요청 실행: `elasticsearch/requests.http` 의 검색 질문 확인
+5. 검색 앱 실행: `search-app-template/` 에서 `docker compose up -d` → http://localhost:3000
+6. Kibana Dashboard 확인: http://localhost:5601
 
 ## 3. 데이터와 mapping
 
-- 문서 수: 5,000건 (합성 데이터)
-- 데이터 생성 규칙과 seed: Day 2에 확정 예정 — Python 생성기, seed 고정으로 재현 가능
-- 개인정보 미사용 확인: 실제 소비자 정보 없음. 제품명·브랜드·태그 모두 합성값
-- 핵심 필드와 타입 선택 이유: Day 2 mapping 확정 후 기록 예정
+- 문서 수: 1,000건 (올리브영 실제 상품 기반 합성 데이터)
+- 데이터 생성: Python 생성기, seed=9502026 고정으로 재현 가능
+- 개인정보 미사용 확인: 실제 소비자 정보 없음. 제품명·브랜드·태그 모두 실제 올리브영 판매 상품 기반 합성값
+- 핵심 필드와 타입:
+
+| field | type | 선택 이유 |
+|---|---|---|
+| product_id | keyword | 고유 식별자 |
+| product_name | text + keyword | 전문 검색 및 정렬 |
+| brand | keyword | 정확 필터 |
+| category | keyword | 정확 필터 |
+| personal_color | keyword | 정확 필터 |
+| skin_type | keyword | 정확 필터 |
+| price | integer | 범위 필터·정렬 |
+| rating | float | 정렬·집계 |
+| review_count | integer | 정렬 |
+| tags | text | 전문 검색 |
+| release_date | date | 범위 필터 |
 
 ## 4. 검색·품질 테스트
 
 | 검색 질문 | 기대 결과 | 실제 결과 | 판정 |
 |---|---|---|---|
-| 촉촉한 봄웜 립틴트 | tags에 "촉촉함" 포함, personal_color=봄웜, category=립틴트 상품 | Day 3 기록 | - |
-| 지속력 좋은 코랄 블러셔 | tags에 "지속력" 포함, category=블러셔 상품 | Day 3 기록 | - |
-| 2만원 이하 평점 좋은 아이섀도우 | price≤20000, category=아이섀도우, rating 높은 순 정렬 | Day 3 기록 | - |
+| 촉촉한 봄웜 립틴트 | tags에 "촉촉함" 포함, personal_color=봄웜, category=립틴트 | total 53건, 상위: 3CE 립틴트·맥 립틴트 | 관련 |
+| 지속력 좋은 코랄 블러셔 | tags에 "지속력" 포함, category=블러셔 | total 63건, 상위: 페리페라·릴리바이레드 블러셔 | 관련 |
+| 2만원 이하 평점 좋은 아이섀도우 | price≤20000, category=아이섀도우, rating 높은 순 | total 해당 조건 내 상위 노출 | 관련 |
 
 ## 5. Dashboard
 
 - Dashboard 사용자: 화장품 구매를 고려 중인 소비자 또는 상품 기획 담당자
-- 차트 1이 답하는 질문: 카테고리별 평균 평점은?
-- 차트 2가 답하는 질문: 퍼스널컬러별 제품 수 분포는?
+- 차트 1이 답하는 질문: 전체 상품 수는?
+- 차트 2가 답하는 질문: 카테고리별 상품 수 분포는?
+- 차트 3이 답하는 질문: 브랜드별 상품 수와 평균 가격은?
+- 차트 4가 답하는 질문: 퍼스널컬러별 제품 수 비율은?
 - control/filter 목적: 카테고리·퍼스널컬러를 선택해 원하는 조건의 제품만 집계 확인
 
 ## 6. AI Search 확장 판단
