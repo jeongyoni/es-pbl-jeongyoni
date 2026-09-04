@@ -17,13 +17,13 @@
 
 ### 결과 입력
 
-- Dashboard 이름:
-- 사용한 계산:
-- 실제 Metric 값:
-- 시간 범위:
-- KQL/filter/control 상태:
-- 정상/보류/오류와 이유:
-- 캡처 파일:
+- Dashboard 이름: D4 공통 상품 Dashboard - 정연
+- 사용한 계산: Count of records
+- 실제 Metric 값: 20,000
+- 시간 범위: 2025-08-01 00:00 ~ 2026-09-03 00:00
+- KQL/filter/control 상태: 모두 없음
+- 정상/보류/오류와 이유: 정상 — 기대 기준 20,000과 일치
+- 캡처 파일: `../captures/c-p02-metric-bar.png`
 
 ## (공통·필수) 문제 2 — category Bar 제작
 
@@ -37,13 +37,13 @@
 
 ### 설정·결과 입력
 
-- Bar 방향:
-- x축 또는 category 차원:
-- y축 또는 Metric:
-- Number of values:
-- 표시된 category 수:
-- 각 category 값이 공통 기준과 일치하는가:
-- 캡처 파일:
+- Bar 방향: 세로(vertical)
+- x축 또는 category 차원: category (Top values)
+- y축 또는 Metric: Count of records
+- Number of values: 8
+- 표시된 category 수: 8 (도서, 반려동물, 뷰티, 생활, 스포츠, 식품, 전자기기, 패션)
+- 각 category 값이 공통 기준과 일치하는가: 예 — 8개 category 모두 각 2,500건으로 균등(합 20,000). aggregation과 일치
+- 캡처 파일: `../captures/c-p02-metric-bar.png`
 
 ## (변형·필수) 문제 3 — Bar 방향 한 가지만 바꿔 비교
 
@@ -53,13 +53,13 @@
 
 | 비교 | vertical | horizontal |
 |---|---|---|
-| category 이름 가독성 |  |  |
-| 값 비교 속도 |  |  |
-| 잘림·겹침 |  |  |
+| category 이름 가독성 | 한글 라벨이 x축에서 다소 좁음 | 라벨이 y축에 가로로 놓여 읽기 쉬움 |
+| 값 비교 속도 | 높이로 즉시 비교 가능 | 길이로 비교, 값이 균등해 차이 미미 |
+| 잘림·겹침 | 라벨이 길면 회전·잘림 위험 | 잘림 없음 |
 
-- 최종 선택:
-- 선택 이유:
-- 다른 설정을 동시에 바꾸지 않았는가:
+- 최종 선택: vertical
+- 선택 이유: category가 8개로 적고 값이 모두 2,500으로 균등해 세로 막대로도 라벨이 겹치지 않고 전체 규모를 한눈에 비교할 수 있음
+- 다른 설정을 동시에 바꾸지 않았는가: 예 — category·Count·Top 8 그대로 두고 방향만 변경
 
 ## (진단·필수) 문제 4 — 막대가 하나만 남은 상황 복구
 
@@ -73,27 +73,27 @@ Bar에 `스포츠` 등 하나의 category만 보인다고 가정합니다. Dashb
 
 ### 진단 기록
 
-- 보이던 category:
-- 발견한 제한 조건:
-- 제거 또는 초기화한 항목:
-- 복구 후 막대 수:
-- 복구 후 Metric 값:
-- 원인이 없었다면 추가로 확인한 Lens 설정:
-- 캡처 파일:
+- 보이던 category: 스포츠 하나만
+- 발견한 제한 조건: 상단 filter pill에 `category: 스포츠`가 걸려 있었음
+- 제거 또는 초기화한 항목: filter pill 삭제 (Control은 Any, KQL 비어 있음 확인)
+- 복구 후 막대 수: 8
+- 복구 후 Metric 값: 20,000
+- 원인이 없었다면 추가로 확인한 Lens 설정: Top values의 Number of values가 1로 줄어 있지 않은지 확인 (8로 유지 확인)
+- 캡처 파일: `../captures/c-p02-recover.png`
 
 ## (개인·선택 도전) 문제 5 — 내 범주 field로 Metric+Bar 설계
 
 자기 데이터의 전체 규모 Metric과 범주별 Bar를 설계하거나 만드세요. 범주 field가 없으면 필요한 field를 설계합니다.
 
-- 개인 index/Data View:
-- 전체 규모가 의미하는 것:
-- 범주 field:
-- 실제 고유값 수:
-- Top N 선택값과 이유:
-- 예상 사용자 판단:
-- 실제 제작 여부:
-- 부족한 경우 필요한 field와 예시값:
-- 캡처 또는 설계 문서 경로:
+- 개인 index/Data View: beauty-products
+- 전체 규모가 의미하는 것: 검색 대상 화장품 총 상품 수 (1,000)
+- 범주 field: category
+- 실제 고유값 수: 6 (블러셔, 립틴트, 아이섀도우, 파운데이션, 쿠션, 립스틱)
+- Top N 선택값과 이유: Top 8 — 고유값이 6개뿐이라 8로 두면 6개 전부가 개별 막대로 표시됨(Other 없음)
+- 예상 사용자 판단: 상품이 많은 카테고리부터 탐색, 적은 립스틱은 선택지가 좁다는 점 인지
+- 실제 제작 여부: 제작함 (개인 대시보드 Q2 패널)
+- 부족한 경우 필요한 field와 예시값: 해당 없음 (category 존재)
+- 캡처 또는 설계 문서 경로: `../captures/p-p07-dashboard.png`, 설계는 `../day-04-dashboard-plan.md`
 
 ## 교시 완료 신호
 

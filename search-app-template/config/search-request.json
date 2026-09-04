@@ -11,9 +11,12 @@
     "tags"
   ],
   "query": {
-    "multi_match": {
-      "query": "{{searchText}}",
-      "fields": ["product_name^3", "tags"]
+    "bool": {
+      "should": [
+        { "multi_match": { "query": "{{searchText}}", "fields": ["product_name^3", "tags"] } },
+        { "wildcard": { "product_name": { "value": "*{{searchText}}*", "boost": 1 } } }
+      ],
+      "minimum_should_match": 1
     }
   },
   "highlight": {
